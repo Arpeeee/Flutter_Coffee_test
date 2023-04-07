@@ -138,5 +138,5 @@ class LineChartPainter extends CustomPainter {
   @override
   bool shouldRepaint(LineChartPainter oldDelegate) =>
       dataPoints != oldDelegate.dataPoints ||
-      animationValue != oldDelegate.animationValue;
+      animationValue != oldDelegate.animationValue
 }
