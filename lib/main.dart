@@ -3,10 +3,93 @@
 // that can be found in the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:syncfusion_flutter_charts/charts.dart'
+// import 'package:syncfusion_flutter_charts/charts.dart'
+// import 'PrincePoint.dart';
+// import 'AnimatedLineChart.dart';
+
+import 'dart:async';
+import 'dart:math';
+
+import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 void main() {
-  runApp(myApp());
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Animated Line Chart',
+      home: LineChartPage(),
+    );
+  }
+}
+
+class LineChartPage extends StatefulWidget {
+  @override
+  _LineChartPageState createState() => _LineChartPageState();
+}
+
+class _LineChartPageState extends State<LineChartPage> {
+  List<double> dataPoints = [];
+  Timer? timer;
+
+  @override
+  void initState() {
+    super.initState();
+    startUpdatingData();
+  }
+
+  @override
+  void dispose() {
+    stopUpdatingData();
+    super.dispose();
+  }
+
+  void startUpdatingData() {
+    timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      setState(() {
+        dataPoints.add(Random().nextDouble() * 100);
+        if (dataPoints.length > 100) {
+          dataPoints.removeAt(0);
+        }
+      });
+    });
+  }
+
+  void stopUpdatingData() {
+    timer?.cancel();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Animated Line Chart'),
+      ),
+      body: LineChart(
+        LineChartData(
+          lineTouchData: LineTouchData(enabled: false),
+          gridData: FlGridData(show: false),
+          titlesData: FlTitlesData(show: false),
+          borderData: FlBorderData(show: false),
+          lineBarsData: [
+            LineChartBarData(
+              spots: dataPoints.asMap().entries.map((entry) {
+                return FlSpot(entry.key.toDouble(), entry.value);
+              }).toList(),
+              isCurved: true,
+              color: Colors.blue,
+              dotData: FlDotData(show: false),
+              belowBarData: BarAreaData(show: false),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 
