@@ -2,7 +2,10 @@
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file.
 
+// import 'dart:ffi';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 // import 'package:syncfusion_flutter_charts/charts.dart'
 // import 'PrincePoint.dart';
 // import 'AnimatedLineChart.dart';
@@ -10,7 +13,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:syncfusion_flutter_sliders/sliders.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 void main() {
@@ -35,6 +38,8 @@ class LineChartPage extends StatefulWidget {
 class _LineChartPageState extends State<LineChartPage> {
   List<double> dataPoints = [];
   Timer? timer;
+
+  // var value = 0.0;
 
   @override
   void initState() {
@@ -63,36 +68,149 @@ class _LineChartPageState extends State<LineChartPage> {
     timer?.cancel();
   }
 
+  double _value = 4.0;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Animated Line Chart'),
+        title: const Text('Animated Line Chart'),
+        backgroundColor: Color.fromRGBO(255, 76, 0, 1),
       ),
-      body: LineChart(
-        LineChartData(
-          lineTouchData: LineTouchData(enabled: false),
-          gridData: FlGridData(show: false),
-          titlesData: FlTitlesData(show: false),
-          borderData: FlBorderData(show: false),
-          lineBarsData: [
-            LineChartBarData(
-              spots: dataPoints.asMap().entries.map((entry) {
-                return FlSpot(entry.key.toDouble(), entry.value);
-              }).toList(),
-              isCurved: true,
-              color: Colors.blue,
-              dotData: FlDotData(show: false),
-              belowBarData: BarAreaData(show: false),
-            ),
-          ],
-        ),
+      //
+      body: Row(
+        children: [
+          SizedBox(
+              width: MediaQuery.of(context).size.width * 0.7,
+              height: double.infinity,
+              child: BorderPading(
+                  child: Padding(
+                padding: EdgeInsets.all(20),
+                child: LineChart(
+                  LineChartData(
+                    lineTouchData: LineTouchData(enabled: false),
+                    gridData: FlGridData(show: false),
+                    titlesData: FlTitlesData(show: false),
+                    borderData: FlBorderData(show: false),
+                    lineBarsData: [
+                      LineChartBarData(
+                        spots: dataPoints.asMap().entries.map((entry) {
+                          return FlSpot(entry.key.toDouble(), entry.value);
+                        }).toList(),
+                        isCurved: true,
+                        color: Colors.blue,
+                        dotData: FlDotData(show: false),
+                        belowBarData: BarAreaData(show: false),
+                      ),
+                    ],
+                  ),
+                ),
+              ))),
+          SizedBox(
+              width: MediaQuery.of(context).size.width * 0.3,
+              height: double.infinity,
+              child: BorderPading(
+                  child: Row(
+                children: [
+                  Expanded(
+                      flex: 1,
+                      child: SliderCustom(
+                        title: "測試風扇",
+                        value: 0.0,
+                        callback: (newvalue) => _value = newvalue,
+                      )),
+                  Expanded(
+                      flex: 1,
+                      child: SliderCustom(
+                        title: "測試轉速",
+                        value: 0.0,
+                        callback: (newvalue) => _value = newvalue,
+                      ))
+                ],
+              )))
+        ],
       ),
     );
   }
 }
 
+class BorderPading extends StatelessWidget {
+  const BorderPading({super.key, this.child = const Placeholder()});
 
+  final Widget? child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+        padding: EdgeInsets.all(10),
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(width: 20, color: Color.fromRGBO(36, 43, 60, 1)),
+            borderRadius: BorderRadius.circular(20),
+            // color: Color.fromRGBO(36, 43, 60, 1),
+          ),
+          child: child,
+        ));
+  }
+}
+
+class SliderCustom extends StatefulWidget {
+  // const sliderCustom({super.key});
+  const SliderCustom(
+      {super.key, required this.callback, this.title = "測試", this.value = 0.0});
+
+  final void Function(double newvalue) callback;
+  final String title;
+  final dynamic value;
+
+  @override
+  State<SliderCustom> createState() => _SliderCustomState();
+}
+
+class _SliderCustomState extends State<SliderCustom> {
+  get _value => widget.value;
+  get _title => widget.title;
+  dynamic _value2;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    _value2 = _value;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Expanded(
+            flex: 1,
+            child: Center(
+              child: Text(_title),
+            )),
+        Expanded(
+            flex: 9,
+            child: SfSlider.vertical(
+              min: 0.0,
+              max: 100.0,
+              value: _value2,
+              interval: 20,
+              showTicks: true,
+              showLabels: true,
+              // showDividers: true,
+              minorTicksPerInterval: 1,
+              // onChangeStart: (value) => _value,
+              onChanged: (dynamic value) async {
+                _value2 = value;
+                widget.callback(value);
+                setState(() {});
+              },
+            ))
+      ],
+    );
+  }
+}
+
+// const Placeholder()
 
 // class SunflowerPainter extends CustomPainter {
 //   static const seedRadius = 2.0;
