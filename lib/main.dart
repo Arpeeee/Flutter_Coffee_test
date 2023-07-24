@@ -4,6 +4,8 @@
 
 // import 'dart:ffi';
 
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 // import 'package:syncfusion_flutter_charts/charts.dart'
@@ -36,8 +38,11 @@ class LineChartPage extends StatefulWidget {
 }
 
 class _LineChartPageState extends State<LineChartPage> {
-  List<double> dataPoints = [];
+  List<FlSpot> dataPoints = [];
   Timer? timer;
+  double keyfl = 0;
+  double _fanvalue = 50;
+  double _temvalue = 50;
 
   // var value = 0.0;
 
@@ -54,12 +59,14 @@ class _LineChartPageState extends State<LineChartPage> {
   }
 
   void startUpdatingData() {
-    timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    timer = Timer.periodic(Duration(milliseconds: 200), (timer) {
       setState(() {
-        dataPoints.add(Random().nextDouble() * 100);
-        if (dataPoints.length > 100) {
-          dataPoints.removeAt(0);
+        dataPoints.add(FlSpot(
+            keyfl, (_fanvalue / 10) + (_temvalue / 10) + (keyfl / 1000)));
+        if (dataPoints.length > 3000) {
+          dataPoints = [];
         }
+        keyfl++;
       });
     });
   }
@@ -67,8 +74,6 @@ class _LineChartPageState extends State<LineChartPage> {
   void stopUpdatingData() {
     timer?.cancel();
   }
-
-  double _value = 4.0;
 
   @override
   Widget build(BuildContext context) {
@@ -86,25 +91,26 @@ class _LineChartPageState extends State<LineChartPage> {
               child: BorderPading(
                   child: Padding(
                 padding: EdgeInsets.all(20),
-                child: LineChart(
-                  LineChartData(
-                    lineTouchData: LineTouchData(enabled: false),
-                    gridData: FlGridData(show: false),
-                    titlesData: FlTitlesData(show: false),
-                    borderData: FlBorderData(show: false),
-                    lineBarsData: [
-                      LineChartBarData(
-                        spots: dataPoints.asMap().entries.map((entry) {
-                          return FlSpot(entry.key.toDouble(), entry.value);
-                        }).toList(),
-                        isCurved: true,
-                        color: Colors.blue,
-                        dotData: FlDotData(show: false),
-                        belowBarData: BarAreaData(show: false),
-                      ),
-                    ],
-                  ),
-                ),
+                child: MyLineWidget(value: dataPoints),
+                // child: LineChart(
+                //   LineChartData(
+                //     lineTouchData: LineTouchData(enabled: false),
+                //     gridData: FlGridData(show: false),
+                //     titlesData: FlTitlesData(show: false),
+                //     borderData: FlBorderData(show: false),
+                //     lineBarsData: [
+                //       LineChartBarData(
+                //         spots: dataPoints.asMap().entries.map((entry) {
+                //           return FlSpot(entry.key.toDouble(), entry.value);
+                //         }).toList(),
+                //         isCurved: true,
+                //         color: Colors.blue,
+                //         dotData: FlDotData(show: false),
+                //         belowBarData: BarAreaData(show: false),
+                //       ),
+                //     ],
+                //   ),
+                // ),
               ))),
           SizedBox(
               width: MediaQuery.of(context).size.width * 0.3,
@@ -117,14 +123,14 @@ class _LineChartPageState extends State<LineChartPage> {
                       child: SliderCustom(
                         title: "測試風扇",
                         value: 0.0,
-                        callback: (newvalue) => _value = newvalue,
+                        callback: (newvalue) => {_fanvalue = newvalue},
                       )),
                   Expanded(
                       flex: 1,
                       child: SliderCustom(
                         title: "測試轉速",
                         value: 0.0,
-                        callback: (newvalue) => _value = newvalue,
+                        callback: (newvalue) => {_temvalue = newvalue},
                       ))
                 ],
               )))
@@ -168,14 +174,13 @@ class SliderCustom extends StatefulWidget {
 }
 
 class _SliderCustomState extends State<SliderCustom> {
-  get _value => widget.value;
+  // dynamic _value get  => widget.value;
   get _title => widget.title;
-  dynamic _value2;
+  dynamic _value2 = 50;
 
-  @override
   void initState() {
     // TODO: implement initState
-    _value2 = _value;
+    // _value2 = widget.value;
   }
 
   @override
@@ -206,6 +211,95 @@ class _SliderCustomState extends State<SliderCustom> {
               },
             ))
       ],
+    );
+  }
+}
+
+class MyLineWidget extends StatefulWidget {
+  const MyLineWidget({super.key, this.value});
+
+  final List<FlSpot>? value;
+
+  @override
+  State<MyLineWidget> createState() => _MyLineWidgetState();
+}
+
+class _MyLineWidgetState extends State<MyLineWidget> {
+  List<double> list = [1, 2, 4, 6, 7, 3, 2, 6, 2];
+
+  LineChartData get sampleData2 => LineChartData(
+        lineTouchData: lineTouchData2,
+        gridData: FlGridData(show: true),
+        titlesData: titlesData2,
+        borderData: borderData,
+        lineBarsData: [lineBarsData2],
+        minX: 0,
+        maxX: 3000,
+        maxY: 20,
+        minY: 0,
+      );
+
+  FlBorderData get borderData => FlBorderData(
+        show: true,
+        border: Border.all(
+            color: Colors.deepOrange,
+            width: 1.0,
+            strokeAlign: BorderSide.strokeAlignCenter),
+      );
+
+  LineTouchData get lineTouchData2 => LineTouchData(
+        touchTooltipData: LineTouchTooltipData(
+            tooltipPadding: const EdgeInsets.all(3),
+            tooltipBgColor: Colors.amberAccent),
+        enabled: true,
+      );
+
+  FlTitlesData get titlesData2 => FlTitlesData(
+        show: false,
+        bottomTitles: AxisTitles(
+          sideTitles: SideTitles(
+            getTitlesWidget: (value, meta) {
+              return const Text(
+                "123",
+                style: TextStyle(),
+                textAlign: TextAlign.center,
+              );
+            },
+          ),
+        ),
+        rightTitles: AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
+        ),
+        topTitles: AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
+        ),
+        leftTitles: AxisTitles(
+          sideTitles: SideTitles(
+            getTitlesWidget: (value, meta) {
+              return const Text(
+                "123",
+                style: TextStyle(color: Colors.black, fontSize: 20),
+                textAlign: TextAlign.center,
+              );
+            },
+          ),
+        ),
+      );
+
+  LineChartBarData get lineBarsData2 => LineChartBarData(
+        spots: widget.value,
+        isCurved: true,
+        color: Colors.blue,
+        dotData: FlDotData(show: false),
+        belowBarData: BarAreaData(show: true),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return LineChart(
+      sampleData2,
+      swapAnimationCurve: Curves.linear,
+      swapAnimationDuration: Duration(milliseconds: 100),
     );
   }
 }
