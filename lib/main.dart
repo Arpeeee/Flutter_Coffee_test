@@ -11,7 +11,7 @@ import 'package:flutter/rendering.dart';
 // import 'package:syncfusion_flutter_charts/charts.dart'
 // import 'PrincePoint.dart';
 // import 'AnimatedLineChart.dart';
-
+import 'package:intl/intl.dart';
 import 'dart:async';
 import 'dart:math';
 
@@ -43,6 +43,7 @@ class _LineChartPageState extends State<LineChartPage> {
   double keyfl = 0;
   double _fanvalue = 50;
   double _temvalue = 50;
+  bool isStart = false; //是否正在烘豆
 
   // var value = 0.0;
 
@@ -58,6 +59,7 @@ class _LineChartPageState extends State<LineChartPage> {
     super.dispose();
   }
 
+  // 計算series
   void startUpdatingData() {
     timer = Timer.periodic(Duration(milliseconds: 200), (timer) {
       setState(() {
@@ -75,6 +77,51 @@ class _LineChartPageState extends State<LineChartPage> {
     timer?.cancel();
   }
 
+  void _startCook() {
+    // 如果沒再轟
+    isStart ? isStart = false : isStart = true;
+    setState(() {});
+  }
+
+  // 框框
+  Widget _borderPadding(Widget childWidget) {
+    return Padding(
+        padding: EdgeInsets.all(10),
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(width: 20, color: Color.fromRGBO(36, 43, 60, 1)),
+            borderRadius: BorderRadius.circular(20),
+            // color: Color.fromRGBO(36, 43, 60, 1),
+          ),
+          child: childWidget,
+        ));
+  }
+
+  Widget _beansBtn(String activeText, String deactiveText, bool isactive) {
+    return Container(
+      margin: EdgeInsets.all(10),
+      height: double.infinity,
+      child: ElevatedButton(
+          onPressed: () {},
+          style: ButtonStyle(
+              backgroundColor:
+                  MaterialStatePropertyAll(Color.fromRGBO(248, 167, 69, 1))),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                isactive ? activeText : deactiveText,
+                style: TextStyle(color: Colors.black87, fontSize: 25),
+              ),
+              Icon(
+                Icons.filter_alt,
+                color: Colors.black87,
+              )
+            ],
+          )),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,78 +135,81 @@ class _LineChartPageState extends State<LineChartPage> {
           SizedBox(
               width: MediaQuery.of(context).size.width * 0.7,
               height: double.infinity,
-              child: BorderPading(
-                  child: Padding(
+              child: _borderPadding(Padding(
                 padding: EdgeInsets.all(20),
                 child: MyLineWidget(value: dataPoints),
-                // child: LineChart(
-                //   LineChartData(
-                //     lineTouchData: LineTouchData(enabled: false),
-                //     gridData: FlGridData(show: false),
-                //     titlesData: FlTitlesData(show: false),
-                //     borderData: FlBorderData(show: false),
-                //     lineBarsData: [
-                //       LineChartBarData(
-                //         spots: dataPoints.asMap().entries.map((entry) {
-                //           return FlSpot(entry.key.toDouble(), entry.value);
-                //         }).toList(),
-                //         isCurved: true,
-                //         color: Colors.blue,
-                //         dotData: FlDotData(show: false),
-                //         belowBarData: BarAreaData(show: false),
-                //       ),
-                //     ],
-                //   ),
-                // ),
               ))),
           SizedBox(
-              width: MediaQuery.of(context).size.width * 0.3,
-              height: double.infinity,
-              child: BorderPading(
-                  child: Row(
-                children: [
-                  Expanded(
-                      flex: 1,
-                      child: SliderCustom(
-                        title: "測試風扇",
-                        value: 0.0,
-                        callback: (newvalue) => {_fanvalue = newvalue},
-                      )),
-                  Expanded(
-                      flex: 1,
-                      child: SliderCustom(
-                        title: "測試轉速",
-                        value: 0.0,
-                        callback: (newvalue) => {_temvalue = newvalue},
-                      ))
-                ],
-              )))
+            width: MediaQuery.of(context).size.width * 0.3,
+            height: double.infinity,
+            child: _borderPadding(Column(
+              children: [
+                Expanded(
+                    flex: 8,
+                    child: Row(
+                      children: [
+                        Expanded(
+                            flex: 1,
+                            child: SliderCustom(
+                              title: "风扇转速",
+                              value: 0.0,
+                              callback: (newvalue) => {_fanvalue = newvalue},
+                            )),
+                        Expanded(
+                            flex: 1,
+                            child: SliderCustom(
+                              title: "瓦斯火力",
+                              value: 0.0,
+                              callback: (newvalue) => {_temvalue = newvalue},
+                            )),
+                        Expanded(
+                            flex: 1,
+                            child: SliderCustom(
+                              title: "滚筒转速",
+                              value: 0.0,
+                              callback: (newvalue) => {_temvalue = newvalue},
+                            ))
+                      ],
+                    )),
+                Expanded(
+                    flex: 1,
+                    child: Row(
+                      children: [
+                        Expanded(child: _beansBtn("下豆", "測試", true)),
+                        Expanded(child: _beansBtn("出豆", "測試", true))
+                      ],
+                    )),
+                Expanded(
+                    flex: 1,
+                    child: Container(
+                        padding: EdgeInsets.all(10),
+                        width: double.infinity,
+                        height: double.infinity,
+                        child: TextButton(
+                          onPressed: () => _startCook(),
+                          style: ButtonStyle(
+                              backgroundColor: MaterialStatePropertyAll(!isStart
+                                  ? Color.fromRGBO(155, 0, 0, 1)
+                                  : Color.fromRGBO(176, 43, 59, 0.8)),
+                              padding:
+                                  MaterialStatePropertyAll(EdgeInsets.all(0))),
+                          child: Text(
+                            isStart ? "結束烘豆" : "開始烘豆",
+                            style: TextStyle(
+                                fontSize: 22,
+                                color: isStart ? Colors.black : Colors.white),
+                          ),
+                        )))
+              ],
+            )),
+          )
         ],
       ),
     );
   }
 }
 
-class BorderPading extends StatelessWidget {
-  const BorderPading({super.key, this.child = const Placeholder()});
-
-  final Widget? child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-        padding: EdgeInsets.all(10),
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border.all(width: 20, color: Color.fromRGBO(36, 43, 60, 1)),
-            borderRadius: BorderRadius.circular(20),
-            // color: Color.fromRGBO(36, 43, 60, 1),
-          ),
-          child: child,
-        ));
-  }
-}
-
+// slider
 class SliderCustom extends StatefulWidget {
   // const sliderCustom({super.key});
   const SliderCustom(
@@ -190,7 +240,10 @@ class _SliderCustomState extends State<SliderCustom> {
         Expanded(
             flex: 1,
             child: Center(
-              child: Text(_title),
+              child: Text(
+                _title,
+                style: TextStyle(fontSize: 20),
+              ),
             )),
         Expanded(
             flex: 9,
@@ -201,6 +254,7 @@ class _SliderCustomState extends State<SliderCustom> {
               interval: 20,
               showTicks: true,
               showLabels: true,
+              numberFormat: NumberFormat(""),
               // showDividers: true,
               minorTicksPerInterval: 1,
               // onChangeStart: (value) => _value,
@@ -234,7 +288,7 @@ class _MyLineWidgetState extends State<MyLineWidget> {
         borderData: borderData,
         lineBarsData: [lineBarsData2],
         minX: 0,
-        maxX: 3000,
+        maxX: 5000,
         maxY: 20,
         minY: 0,
       );
@@ -303,139 +357,3 @@ class _MyLineWidgetState extends State<MyLineWidget> {
     );
   }
 }
-
-// const Placeholder()
-
-// class SunflowerPainter extends CustomPainter {
-//   static const seedRadius = 2.0;
-//   static const scaleFactor = 4;
-//   static const tau = math.pi * 2;
-
-//   static final phi = (math.sqrt(5) + 1) / 2;
-
-//   final int seeds;
-
-//   SunflowerPainter(this.seeds);
-
-//   @override
-//   void paint(Canvas canvas, Size size) {
-//     final center = size.width / 2;
-
-//     for (var i = 0; i < seeds; i++) {
-//       final theta = i * tau / phi;
-//       final r = math.sqrt(i) * scaleFactor;
-//       final x = center + r * math.cos(theta);
-//       final y = center - r * math.sin(theta);
-//       final offset = Offset(x, y);
-//       if (!size.contains(offset)) {
-//         continue;
-//       }
-//       drawSeed(canvas, x, y);
-//     }
-//   }
-
-//   @override
-//   bool shouldRepaint(SunflowerPainter oldDelegate) {
-//     return oldDelegate.seeds != seeds;
-//   }
-
-//   // Draw a small circle representing a seed centered at (x,y).
-//   void drawSeed(Canvas canvas, double x, double y) {
-//     final paint = Paint()
-//       ..strokeWidth = 2
-//       ..style = PaintingStyle.fill
-//       ..color = primaryColor;
-//     canvas.drawCircle(Offset(x, y), seedRadius, paint);
-//   }
-// }
-
-// class Sunflower extends StatefulWidget {
-//   @override
-//   State<StatefulWidget> createState() {
-//     return _SunflowerState();
-//   }
-// }
-
-// class _SunflowerState extends State<Sunflower> {
-//   double seeds = 100.0;
-
-//   int get seedCount => seeds.floor();
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       debugShowCheckedModeBanner: false,
-//       theme: ThemeData().copyWith(
-//         platform: platform,
-//         brightness: Brightness.dark,
-//         sliderTheme: SliderThemeData.fromPrimaryColors(
-//           primaryColor: primaryColor,
-//           primaryColorLight: primaryColor,
-//           primaryColorDark: primaryColor,
-//           valueIndicatorTextStyle: const DefaultTextStyle.fallback().style,
-//         ),
-//       ),
-//       home: Scaffold(
-//         appBar: AppBar(
-//           title: const Text("Sunflower"),
-//         ),
-//         drawer: Drawer(
-//           child: ListView(
-//             children: const [
-//               DrawerHeader(
-//                 child: Center(
-//                   child: Text(
-//                     "Sunflower 🌻",
-//                     style: TextStyle(fontSize: 32),
-//                   ),
-//                 ),
-//               ),
-//             ],
-//           ),
-//         ),
-//         body: Container(
-//           constraints: const BoxConstraints.expand(),
-//           decoration: BoxDecoration(
-//             border: Border.all(
-//               color: Colors.transparent,
-//             ),
-//           ),
-//           child: Column(
-//             crossAxisAlignment: CrossAxisAlignment.center,
-//             mainAxisAlignment: MainAxisAlignment.start,
-//             children: [
-//               Container(
-//                 decoration: BoxDecoration(
-//                   border: Border.all(
-//                     color: Colors.blue,
-//                   ),
-//                 ),
-//                 child: SizedBox(
-//                   width: 400,
-//                   height: 400,
-//                   child: CustomPaint(
-//                     painter: SunflowerPainter(seedCount),
-//                   ),
-//                 ),
-//               ),
-//               Text("Showing $seedCount seeds"),
-//               ConstrainedBox(
-//                 constraints: const BoxConstraints.tightFor(width: 400),
-//                 child: Slider.adaptive(
-//                   min: 20,
-//                   max: 2000,
-//                   value: seeds,
-//                   onChanged: (newValue) {
-//                     setState(() {
-//                       seeds = newValue;
-//                     });
-//                   },
-//                 ),
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
