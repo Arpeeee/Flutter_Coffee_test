@@ -97,24 +97,25 @@ class _LineChartPageState extends State<LineChartPage> {
         ));
   }
 
-  Widget _beansBtn(String activeText, String deactiveText, bool isactive) {
+  // 出豆下豆按鈕
+  Widget _beansBtn(String activeText, IconData icon, bool isactive) {
     return Container(
-      margin: EdgeInsets.all(10),
+      margin: const EdgeInsets.all(10),
       height: double.infinity,
       child: ElevatedButton(
           onPressed: () {},
-          style: ButtonStyle(
+          style: const ButtonStyle(
               backgroundColor:
                   MaterialStatePropertyAll(Color.fromRGBO(248, 167, 69, 1))),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                isactive ? activeText : deactiveText,
-                style: TextStyle(color: Colors.black87, fontSize: 25),
+                activeText,
+                style: const TextStyle(color: Colors.black87, fontSize: 25),
               ),
               Icon(
-                Icons.filter_alt,
+                icon,
                 color: Colors.black87,
               )
             ],
@@ -175,8 +176,11 @@ class _LineChartPageState extends State<LineChartPage> {
                     flex: 1,
                     child: Row(
                       children: [
-                        Expanded(child: _beansBtn("下豆", "測試", true)),
-                        Expanded(child: _beansBtn("出豆", "測試", true))
+                        Expanded(
+                            child: _beansBtn("下豆", Icons.filter_alt, true)),
+                        Expanded(
+                            child:
+                                _beansBtn("出豆", Icons.coffee_outlined, false))
                       ],
                     )),
                 Expanded(
@@ -356,4 +360,61 @@ class _MyLineWidgetState extends State<MyLineWidget> {
       swapAnimationDuration: Duration(milliseconds: 100),
     );
   }
+}
+
+class ShowDialogWidget extends StatelessWidget {
+  const ShowDialogWidget(
+      {super.key,
+      required this.okOnPress,
+      required this.cancelOnPress,
+      required this.message});
+  final void okOnPress;
+  final void cancelOnPress;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      actionsAlignment: MainAxisAlignment.center,
+      title: Text(message),
+      actions: [
+        ElevatedButton(
+            child: const Text("OK"),
+            onPressed: () {
+              Navigator.pop(context);
+            }),
+        ElevatedButton(
+            child: const Text("Cancel"),
+            onPressed: () {
+              Navigator.pop(context);
+            }),
+      ],
+    );
+  }
+}
+
+showAlertDialog(BuildContext context) {
+  // Init
+  AlertDialog dialog = AlertDialog(
+    title: Text("AlertDialog component"),
+    actions: [
+      ElevatedButton(
+          child: Text("OK"),
+          onPressed: () {
+            Navigator.pop(context);
+          }),
+      ElevatedButton(
+          child: Text("Cancel"),
+          onPressed: () {
+            Navigator.pop(context);
+          }),
+    ],
+  );
+
+  // Show the dialog
+  showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return dialog;
+      });
 }
