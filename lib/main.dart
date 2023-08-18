@@ -43,14 +43,24 @@ class _LineChartPageState extends State<LineChartPage> {
   double keyfl = 0;
   double _fanvalue = 50;
   double _temvalue = 50;
-  bool isStart = false; //是否正在烘豆
+  double _tongvalue = 50;
+  //是否正在烘豆
+  final ValueNotifier<bool> _isStart = ValueNotifier<bool>(false);
 
   // var value = 0.0;
 
   @override
   void initState() {
     super.initState();
-    startUpdatingData();
+
+    _isStart.addListener(() {
+      if (_isStart.value) {
+        // 正在烘豆
+        startUpdatingData();
+      } else {
+        stopUpdatingData();
+      }
+    });
   }
 
   @override
@@ -62,24 +72,46 @@ class _LineChartPageState extends State<LineChartPage> {
   // 計算series
   void startUpdatingData() {
     timer = Timer.periodic(Duration(milliseconds: 200), (timer) {
-      setState(() {
+      if (dataPoints.length < 200) {
+        // 負斜率
+        dataPoints.add(FlSpot(
+            keyfl, (_fanvalue / 10) + (_temvalue / 10) - (keyfl / 1000)));
+        keyfl++;
+      } else if (dataPoints.length < 4000) {
+        // 正斜率
         dataPoints.add(FlSpot(
             keyfl, (_fanvalue / 10) + (_temvalue / 10) + (keyfl / 1000)));
-        if (dataPoints.length > 3000) {
-          dataPoints = [];
-        }
         keyfl++;
-      });
+      } else {
+        // 超過時間就停止
+        dataPoints = [];
+        _isStart.value = false;
+        keyfl = 0;
+      }
+      setState(() {});
     });
   }
 
   void stopUpdatingData() {
     timer?.cancel();
+    dataPoints = [];
+    keyfl = 0;
+    setState(() {});
   }
 
-  void _startCook() {
+  void _toggleCook() {
     // 如果沒再轟
-    isStart ? isStart = false : isStart = true;
+    _isStart.value ? _isStart.value = false : _isStart.value = true;
+    setState(() {});
+  }
+
+  void _start() {
+    _isStart.value = true;
+    setState(() {});
+  }
+
+  void _end() {
+    _isStart.value = false;
     setState(() {});
   }
 
@@ -98,12 +130,13 @@ class _LineChartPageState extends State<LineChartPage> {
   }
 
   // 出豆下豆按鈕
-  Widget _beansBtn(String activeText, IconData icon, bool isactive) {
+  Widget _beansBtn(
+      String activeText, IconData icon, bool isactive, Function onpress) {
     return Container(
       margin: const EdgeInsets.all(10),
       height: double.infinity,
       child: ElevatedButton(
-          onPressed: () {},
+          onPressed: () => onpress,
           style: const ButtonStyle(
               backgroundColor:
                   MaterialStatePropertyAll(Color.fromRGBO(248, 167, 69, 1))),
@@ -177,10 +210,14 @@ class _LineChartPageState extends State<LineChartPage> {
                     child: Row(
                       children: [
                         Expanded(
-                            child: _beansBtn("下豆", Icons.filter_alt, true)),
+                            child: _beansBtn("下豆", Icons.filter_alt, true, () {
+                          setState(() {
+                            _isStart.value = true;
+                          });
+                        })),
                         Expanded(
-                            child:
-                                _beansBtn("出豆", Icons.coffee_outlined, false))
+                            child: _beansBtn("出豆", Icons.coffee_outlined, false,
+                                () => _end()))
                       ],
                     )),
                 Expanded(
@@ -190,18 +227,21 @@ class _LineChartPageState extends State<LineChartPage> {
                         width: double.infinity,
                         height: double.infinity,
                         child: TextButton(
-                          onPressed: () => _startCook(),
+                          onPressed: () => _toggleCook(),
                           style: ButtonStyle(
-                              backgroundColor: MaterialStatePropertyAll(!isStart
-                                  ? Color.fromRGBO(155, 0, 0, 1)
-                                  : Color.fromRGBO(176, 43, 59, 0.8)),
-                              padding:
-                                  MaterialStatePropertyAll(EdgeInsets.all(0))),
+                              backgroundColor: MaterialStatePropertyAll(
+                                  !_isStart.value
+                                      ? Color.fromRGBO(155, 0, 0, 1)
+                                      : Color.fromRGBO(176, 43, 59, 0.8)),
+                              padding: const MaterialStatePropertyAll(
+                                  EdgeInsets.all(0))),
                           child: Text(
-                            isStart ? "結束烘豆" : "開始烘豆",
+                            _isStart.value ? "結束烘豆" : "開始烘豆",
                             style: TextStyle(
                                 fontSize: 22,
-                                color: isStart ? Colors.black : Colors.white),
+                                color: _isStart.value
+                                    ? Colors.black
+                                    : Colors.white),
                           ),
                         )))
               ],
@@ -217,7 +257,10 @@ class _LineChartPageState extends State<LineChartPage> {
 class SliderCustom extends StatefulWidget {
   // const sliderCustom({super.key});
   const SliderCustom(
-      {super.key, required this.callback, this.title = "測試", this.value = 0.0});
+      {super.key,
+      required this.callback,
+      this.title = "測試",
+      required this.value});
 
   final void Function(double newvalue) callback;
   final String title;
@@ -230,11 +273,14 @@ class SliderCustom extends StatefulWidget {
 class _SliderCustomState extends State<SliderCustom> {
   // dynamic _value get  => widget.value;
   get _title => widget.title;
-  dynamic _value2 = 50;
+  dynamic _value2;
 
+  @override
   void initState() {
+    super.initState();
+
     // TODO: implement initState
-    // _value2 = widget.value;
+    _value2 = widget.value;
   }
 
   @override
@@ -246,7 +292,7 @@ class _SliderCustomState extends State<SliderCustom> {
             child: Center(
               child: Text(
                 _title,
-                style: TextStyle(fontSize: 20),
+                style: const TextStyle(fontSize: 20),
               ),
             )),
         Expanded(
